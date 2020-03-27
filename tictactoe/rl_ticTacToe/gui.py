@@ -1,7 +1,8 @@
 import PySimpleGUI as sg
 import threading
 import multiprocessing as mp
-# plt.style.use('dark_background')
+import numpy as np
+from .agent import Tictactoe
 sg.theme('Black')
 agent = Tictactoe()
 
@@ -38,7 +39,7 @@ window = sg.Window('TicTacToe',layout,element_justification='center')
 player_map = {1:'HUMAN' , 2:'AGENT SMITH'}
 symbol_map = {'o':1 , '':0 , 'x':2  }
 
-isTraining = False
+
 
 def evaluate(who,button_states):
     
@@ -51,60 +52,62 @@ def evaluate(who,button_states):
         return 0
     
     return 1
+def run_game():
+    isTraining = False
+    while 1:
 
-while 1:
-    
-    event, value = window.read(timeout = 100)
-    
-    if event == 'exit':
-        window.close()
-        break
-    elif event == 'reset':
-        [window[chr(x)].update('',disabled = False) for x in range(ord('a'),ord('i')+1)]
-        [window[chr(x)].update(button_color = ('black','white'))  for x in range(ord('a'),ord('i')+1)]
-        window['end_state'].update('')   
-      
-    elif event == 'Train me':
-        steps = int(value['training_intensity'])
-        alpha = float(value['alpha'])
-        gamma = float(value['gamma'])
-        epsilon = float(value['epsilon'])
-        win = int(value['win'])
-        draw = int(value['draw'])
-        lose = int(value['lose'])
-        play = int(value['play'])
-        cpus = int(value['cpus'])
-        t1 = threading.Thread(target= agent.train , args = (steps,cpus,gamma,alpha,epsilon,win,draw,lose,play) , daemon = True)
-        t1.start()
-        window['training_status'].update('...Training....')
-#         agent.train(100000)
-        isTraining = True
-        window['Train me'].update(disabled = True)
-    elif event != None and event.isalpha():
-        window[event].update('o')
-        window[event].update(disabled = True)
-        window[event].update(button_color = ('black','red') )
-        button_states = [symbol_map[window[chr(x)].GetText()]  for x in range(ord('a'),ord('i')+1)]
-        if not evaluate(1,button_states):
-            [window[chr(x)].update(button_color = ('black','white'),disabled=True)  for x in range(ord('a'),ord('i')+1)]
-            continue
-        
-        agent_play = agent.agent_play(button_states)
-        window[agent_play].update('x')
-        window[agent_play].update(disabled = True)
-        window[agent_play].update(button_color = ('black','blue'))
-        button_states = [symbol_map[window[chr(x)].GetText()]  for x in range(ord('a'),ord('i')+1)]
-        if not evaluate(2,button_states):
-            [window[chr(x)].update(button_color = ('black','white'),disabled=True)  for x in range(ord('a'),ord('i')+1)]
-            continue
-    
-    if isTraining:
-        
-        try:
-            agent.training_done.get_nowait()
-            window['training_status'].update('...DONE....')
-            isTraining = False
-        except:
-            pass
+        event, value = window.read(timeout = 100)
+
+        if event == 'exit':
+            window.close()
+            break
+        elif event == 'reset':
+            [window[chr(x)].update('',disabled = False) for x in range(ord('a'),ord('i')+1)]
+            [window[chr(x)].update(button_color = ('black','white'))  for x in range(ord('a'),ord('i')+1)]
+            window['end_state'].update('')   
+
+        elif event == 'Train me':
+            steps = int(value['training_intensity'])
+            alpha = float(value['alpha'])
+            gamma = float(value['gamma'])
+            epsilon = float(value['epsilon'])
+            win = int(value['win'])
+            draw = int(value['draw'])
+            lose = int(value['lose'])
+            play = int(value['play'])
+            cpus = int(value['cpus'])
+            t1 = threading.Thread(target= agent.train , args = (steps,cpus,gamma,alpha,epsilon,win,draw,lose,play) , daemon = True)
+            t1.start()
+            window['training_status'].update('...Training....')
+    #         agent.train(100000)
+            isTraining = True
+            window['Train me'].update(disabled = True)
+        elif event != None and event.isalpha():
+            window[event].update('o')
+            window[event].update(disabled = True)
+            window[event].update(button_color = ('black','red') )
+            button_states = [symbol_map[window[chr(x)].GetText()]  for x in range(ord('a'),ord('i')+1)]
+            if not evaluate(1,button_states):
+                [window[chr(x)].update(button_color = ('black','white'),disabled=True)  for x in range(ord('a'),ord('i')+1)]
+                continue
+
+            agent_play = agent.agent_play(button_states)
+            window[agent_play].update('x')
+            window[agent_play].update(disabled = True)
+            window[agent_play].update(button_color = ('black','blue'))
+            button_states = [symbol_map[window[chr(x)].GetText()]  for x in range(ord('a'),ord('i')+1)]
+            if not evaluate(2,button_states):
+                [window[chr(x)].update(button_color = ('black','white'),disabled=True)  for x in range(ord('a'),ord('i')+1)]
+                continue
+
+        if isTraining:
+
+            try:
+                agent.training_done.get_nowait()
+                window['training_status'].update('...DONE....')
+                isTraining = False
+                window['Train me'].update(disabled = False)
+            except:
+                pass
         
     
