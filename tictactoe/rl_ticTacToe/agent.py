@@ -4,6 +4,7 @@ import multiprocessing as mp
 
 
 class Tictactoe:
+#     can play the game using non GUI , just run the play() method
     def __init__(self):
         
         self.states = self.get_states()
@@ -230,12 +231,13 @@ class Tictactoe:
 
         what_state = list(self.states.values()).index(tuple(game_state))
         available_blocks = np.where(np.array(game_state) == 0)[0]
-        avialable_q_vals =   np.array([self.Q[what_state][available_blocks],available_blocks])
+        available_q_vals =   np.array([self.Q[what_state][available_blocks],available_blocks])
 
-        if len(np.unique(avialable_q_vals[0])) == 1:
+        if len(np.unique(available_q_vals[0])) == 1:
             agent_action = np.random.choice(available_blocks)
         else:
-            agent_action = avialable_q_vals[1,np.argmax(avialable_q_vals[0])]
+            agent_action = available_q_vals[1,np.argmax(available_q_vals[0])]
 
         return self.actions[agent_action]
     
+
